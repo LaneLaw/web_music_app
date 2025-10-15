@@ -22,11 +22,35 @@ export async function get(url, param) {
       queryStr += `${key}=${param[key]}`;
     });
   }
+  let i = 0;
+  function retryGet() {
+    return new Promise((resolve, reject) => {
+      instance
+        .get(url + (param ? `?` + queryStr : ""))
+        .then((response) => {
+          if (response.data.code !== 200) {
+            if (i < 4) {
+              i++;
+              resolve(retryGet());
+            } else {
+              i = 0;
+              reject(response.data.message);
+            }
+          } else {
+            resolve(response);
+          }
+        })
+        .catch((e) => {
+          if (i < 4) {
+            i++;
+            retryGet();
+          } else {
+            i = 0;
+            reject(e);
+          }
+        });
+    });
+  }
 
-  return new Promise((resolve, reject) => {
-    instance
-      .get(url + (param ? `?` + queryStr : ""))
-      .then((response) => resolve(response))
-      .catch((e) => reject(e));
-  });
+  return await retryGet();
 }

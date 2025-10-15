@@ -339,12 +339,14 @@ defineExpose({
   width: 100%;
   background: #dbd8cf;
   cursor: pointer;
+  transform: translateY(8px);
 }
 .progress_mask_1 {
   position: absolute;
   height: 10px;
   width: 100%;
   cursor: pointer;
+  transform: translateY(8px);
 }
 .progress_mask_2 {
   position: absolute;
@@ -352,6 +354,7 @@ defineExpose({
   height: 10px;
   width: 100%;
   cursor: pointer;
+  transform: translateY(8px);
 }
 .progress_ball {
   position: absolute;
@@ -418,7 +421,7 @@ defineExpose({
 }
 .duration {
   position: absolute;
-  margin-top: -28px;
+  margin-top: -20px;
   color: #dbd8cf;
 }
 </style>

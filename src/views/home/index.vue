@@ -14,7 +14,6 @@
     <Songs ref="songsRef"></Songs>
     <div class="layout">
       <div class="music_effect_area">
-        <AudioVisual ref="visualRef"></AudioVisual>
         <div class="song_list">
           <div
             v-for="item in songs"
@@ -47,6 +46,7 @@
           @mouseenter="handleCardEnter"
           @mouseleave="handleCardLeave"
         >
+          <AudioVisual ref="visualRef" class="card_audio_vis"></AudioVisual>
           <div class="play_area_card_left">
             <div class="play_area_card_left_title">{{ currentSong.name }}</div>
             <div
@@ -125,14 +125,13 @@ const loading = ref(false);
 const loadingShow = ref(false);
 const searchKeyword = ref("");
 const songUrl = ref("");
-const lyricInterval = ref(null);
 const playing = ref(false);
 const volume = ref(0);
 const isManualScroll = ref(null);
 const highlightLyric = ref(null);
 const songs = ref([]);
 const lyrics = ref([]);
-const currentSong = ref({ name: "默认" });
+const currentSong = ref({ name: "" });
 
 const songDuration = ref(0);
 const songCurrentTime = ref(0);
@@ -150,13 +149,15 @@ function setupEventListener() {
 }
 
 async function handleMusicSearch(word) {
-  const { data } = await get("https://api.vkeys.cn/v2/music/netease", { word });
+  const { data } = await get("https://api.vkeys.cn/v2/music/netease", {
+    word,
+  });
   songs.value = data.data.map((item) => ({
     ...item,
     isActive: false,
     isCurrent: false,
   }));
-  songsRef.value.initSongs(songs.value)
+  songsRef.value.initSongs(songs.value);
 }
 
 function handleMouseEnter(item) {
@@ -170,23 +171,24 @@ function handleClick(item) {
     song.isCurrent = false;
   });
   item.isCurrent = true;
-  currentSong.value.name = item.name;
-  handleSongOn();
+  currentSong.value.name = item.song;
+  resetHighlightLyric();
+  handleSongOn(item.id);
 }
 function resetPlayer() {
   const top = document.querySelector(".lyrics_top_placeholder");
   top.style = "height: 0;";
   lyrics.value.forEach((item) => (item.show = false));
 }
-async function handleSongOn() {
+async function handleSongOn(id) {
   loadingShow.value = true;
   loading.value = true;
   resetPlayer();
   const { data } = await get("https://api.vkeys.cn/v2/music/netease", {
-    id: "1345872140",
+    id: id,
   });
   setCover(data.data.cover);
-  await getLyric("1345872140");
+  await getLyric(id);
   songUrl.value = data.data.url;
   setupAudio();
 }
@@ -211,6 +213,7 @@ function setupAudio() {
     const top = document.querySelector(".lyrics_top_placeholder");
     top.style = "height: 50%;";
     playing.value = true;
+    visualRef.value.initVisual(audio);
   });
   audio.value.addEventListener("pause", function () {
     playing.value = false;
@@ -246,12 +249,6 @@ async function getLyric(id) {
   return new Promise(async (resolve) => {
     const { data } = await get("https://api.vkeys.cn/v2/music/netease/lyric", {
       id,
-    }).catch((e) => {
-      console.error(e);
-      if (lyricRetry.value <= 5) {
-        lyricRetry.value++;
-        resolve(getLyric(id));
-      }
     });
     const lyric = data.data.lrc;
     const conLyc = data.data.yrc;
@@ -284,7 +281,6 @@ async function getLyric(id) {
         }
       }, 50);
     }, 250);
-    lyricRetry.value = 0;
   });
 }
 function focusLyric(target) {
@@ -365,7 +361,6 @@ onMounted(() => {
     volume.value = audio.value.muted ? 0 : 0.5;
     audio.value.volume = 0.5;
     audioPlayerRef.value.initVolume(volume.value);
-    // visualRef.value.initVisual(audio);
   });
 });
 </script>
@@ -429,6 +424,7 @@ onMounted(() => {
   height: 300px;
   width: 200px;
   overflow-y: overlay;
+  overflow-x: hidden;
   scrollbar-gutter: stable;
 }
 .song_name {
@@ -443,6 +439,10 @@ onMounted(() => {
   color: wheat;
   font-style: italic;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-wrap: nowrap;
 }
 .song_active {
   background: linear-gradient(to right, #ec695c, #61c454) no-repeat right bottom;
@@ -471,6 +471,9 @@ onMounted(() => {
   border-radius: 7px;
   -webkit-border-radius: 7px;
   color: rgb(128, 128, 128);
+}
+.card_audio_vis {
+  position: absolute;
 }
 .audio_player {
   position: absolute;
