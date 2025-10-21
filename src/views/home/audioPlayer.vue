@@ -133,7 +133,6 @@ watch(
   }
 );
 
-
 const emit = defineEmits(["switch", "jump", "volume", "update:duration"]);
 
 const progressRef = ref();
@@ -261,25 +260,24 @@ function isMouseInElement(event, element) {
     event.clientY <= rect.bottom
   );
 }
-
+const timeoutFunc = ref(null);
 function showPanel(flag) {
+  if (timeoutFunc.value) {
+    clearTimeout(timeoutFunc.value);
+    timeoutFunc.value = null;
+  }
   const showArr = [showCtrl, showProgress, showVol];
-  const unShowArr = [showVol, showProgress, showCtrl];
-  const map = {
-    true: showArr,
-    false: unShowArr,
-  };
-  map[flag][0].value = flag;
-  setTimeout(() => {
-    map[flag][1].value = flag;
-    setTimeout(() => {
-      map[flag][2].value = flag;
+  showArr[0].value = flag;
+  timeoutFunc.value = setTimeout(() => {
+    showArr[1].value = flag;
+    timeoutFunc.value = setTimeout(() => {
+      showArr[2].value = flag;
     }, 50);
   }, 50);
 }
 
 function initVolume(val) {
-  volProgBallRef.value.style.top = `${val}%`;
+  volProgBallRef.value.style.top = `${val * 100}%`;
 }
 
 onMounted(() => {
@@ -331,7 +329,7 @@ defineExpose({
   display: flex;
   align-items: center;
   height: 100%;
-  flex-grow: 1;
+  width: calc(100% - 124px);
 }
 .progress {
   position: absolute;
