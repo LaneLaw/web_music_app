@@ -16,10 +16,21 @@
       <div class="music_effect_area">
         <div class="song_list">
           <div
+            v-show="songListLoading"
+            :class="{ loading: true, loading_show: songListLoading }"
+          >
+            <icon
+              icon="svg-spinners:bars-scale-middle"
+              width="30"
+              height="30"
+            ></icon>
+          </div>
+          <div
             v-for="item in songs"
             :class="{
               song_name: true,
               song_active: !item.isCurrent,
+              song_show: item.show,
             }"
             @mouseenter="handleMouseEnter(item)"
             @mouseleave="handleMouseLeave(item)"
@@ -48,12 +59,20 @@
         >
           <AudioVisual ref="visualRef" class="card_audio_vis"></AudioVisual>
           <div class="play_area_card_left">
-            <div class="play_area_card_left_title">{{ currentSong.name }}</div>
+            <div
+              :class="{
+                play_area_card_left_title: true,
+                play_area_card_left_title_show: cdShow,
+              }"
+            >
+              {{ currentSong.name }}
+            </div>
             <div
               ref="cdRef"
               :class="{
                 play_area_card_left_cd: true,
                 play_area_card_left_cd_pause: !playing,
+                play_area_card_left_cd_show: cdShow,
               }"
             ></div>
           </div>
@@ -148,7 +167,16 @@ function setupEventListener() {
   });
 }
 
+function resetSongs() {
+  if (songs.value && Array.isArray(songs.value) && songs.value.length > 0) {
+    songs.value.forEach((item) => (item.show = false));
+  }
+}
+
+const songListLoading = ref(false);
 async function handleMusicSearch(word) {
+  resetSongs();
+  songListLoading.value = true;
   const { data } = await get("https://api.vkeys.cn/v2/music/netease", {
     word,
   });
@@ -156,7 +184,21 @@ async function handleMusicSearch(word) {
     ...item,
     isActive: false,
     isCurrent: false,
+    show: false,
   }));
+  let i = 0;
+  const len = songs.value.length;
+  setTimeout(() => {
+    songListLoading.value = false;
+    let showInterval = setInterval(() => {
+      songs.value[i].show = true;
+      i++;
+      if (i >= len) {
+        clearInterval(showInterval);
+        showInterval = null;
+      }
+    }, 100);
+  }, 200);
   songsRef.value.initSongs(songs.value);
 }
 
@@ -171,15 +213,19 @@ function handleClick(item) {
     song.isCurrent = false;
   });
   item.isCurrent = true;
-  currentSong.value.name = item.song;
-  resetHighlightLyric();
-  handleSongOn(item.id);
+  cdShow.value = false;
+  setTimeout(() => {
+    currentSong.value.name = item.song;
+    resetHighlightLyric();
+    handleSongOn(item.id);
+  }, 300);
 }
 function resetPlayer() {
   const top = document.querySelector(".lyrics_top_placeholder");
   top.style = "height: 0;";
   lyrics.value.forEach((item) => (item.show = false));
 }
+const cdShow = ref(false);
 async function handleSongOn(id) {
   loadingShow.value = true;
   loading.value = true;
@@ -269,6 +315,7 @@ async function getLyric(id) {
     let i = 0;
     const len = lyrics.value.length - 1;
     loading.value = false;
+    cdShow.value = true;
     setTimeout(() => {
       loadingShow.value = false;
       let showInterval = setInterval(() => {
@@ -436,22 +483,26 @@ onMounted(() => {
   align-items: center;
   justify-content: flex-start;
   font-size: 20px;
-  color: wheat;
+  color: #dbd8cf;
   font-style: italic;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-wrap: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s, background-size 0.3s;
 }
 .song_active {
   background: linear-gradient(to right, #ec695c, #61c454) no-repeat right bottom;
   background-size: 0 1px;
-  transition: background-size 0.3s;
 }
 .song_active:hover {
   background-size: 100% 1px;
   background-position-x: left;
+}
+.song_show {
+  opacity: 1;
 }
 .play_area {
   align-items: center;
@@ -497,6 +548,12 @@ onMounted(() => {
   width: 200px;
   height: 30px;
   margin-top: 20%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.play_area_card_left_title_show {
+  opacity: 1;
 }
 
 .play_area_card_left_cd {
@@ -509,6 +566,8 @@ onMounted(() => {
   width: 100px;
   animation: rotate 30s infinite linear;
   animation-play-state: running;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 .play_area_card_left_cd_pause {
   animation-play-state: paused;
@@ -520,6 +579,10 @@ onMounted(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.play_area_card_left_cd_show {
+  opacity: 1;
 }
 
 .play_area_card_right_lyric {
@@ -534,6 +597,7 @@ onMounted(() => {
 }
 .loading {
   position: absolute;
+  color: #dbd8cf;
   top: calc(50% - 15px);
   left: calc(50% - 15px);
   height: 30px;
