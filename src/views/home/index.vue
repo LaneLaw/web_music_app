@@ -3,6 +3,17 @@
   <!-- <div class="bg"></div>
   <div class="mask"></div> -->
   <IBackGround>
+    <!-- <div classs="frame_container">
+      <iframe
+        src="//player.bilibili.com/player.html?isOutside=true&aid=114433179324930&bvid=BV1ViGzzLEAL&cid=29750135753&p=12"
+        class="iframe"
+        scrolling="no"
+        border="0"
+        frameborder="no"
+        framespacing="0"
+        allowfullscreen="false"
+      ></iframe>
+    </div> -->
     <IInput
       v-model="searchKeyword"
       id="input"
@@ -13,6 +24,7 @@
     ></IInput>
     <Songs ref="songsRef"></Songs>
     <div class="layout">
+      <api-source-announcement class="announcement"></api-source-announcement>
       <div class="music_effect_area">
         <div class="song_list">
           <div
@@ -53,7 +65,7 @@
       ></audio>
       <div class="play_area">
         <div
-          class="play_area_card"
+          :class="{ play_area_card: true, play_area_card_open: hasPlayed }"
           @mouseenter="handleCardEnter"
           @mouseleave="handleCardLeave"
         >
@@ -127,12 +139,13 @@
 <script setup>
 import { nextTick, onMounted, ref, watch } from "vue";
 import IBorder from "@/components/effects/IBorder.vue";
-import { get } from "@/utils/utils";
+import { get } from "@/libs/utils";
 import AudioPlayer from "./audioPlayer.vue";
 import AudioVisual from "./audioVisual.vue";
 import Songs from "./songs.vue";
 import IInput from "@/components/form/IInput.vue";
 import IBackGround from "@/components/effects/IBackGround.vue";
+import apiSourceAnnouncement from "./apiSourceAnnouncement.vue";
 
 const audio = ref();
 const visualRef = ref();
@@ -159,6 +172,7 @@ const isSearchFocus = ref(false);
 function handleInputFocus(val) {
   isSearchFocus.value = val;
 }
+
 function setupEventListener() {
   document.addEventListener("keyup", function (e) {
     if (e.key === "Enter" && isSearchFocus.value && searchKeyword.value) {
@@ -208,7 +222,9 @@ function handleMouseEnter(item) {
 function handleMouseLeave(item) {
   item.isActive = false;
 }
+const hasPlayed = ref(false);
 function handleClick(item) {
+  hasPlayed.value = true;
   songs.value.forEach((song) => {
     song.isCurrent = false;
   });
@@ -216,6 +232,10 @@ function handleClick(item) {
   cdShow.value = false;
   setTimeout(() => {
     currentSong.value.name = item.song;
+    audio.value.pause();
+    loadingShow.value = true;
+    loading.value = true;
+    resetPlayer();
     resetHighlightLyric();
     handleSongOn(item.id);
   }, 300);
@@ -227,9 +247,6 @@ function resetPlayer() {
 }
 const cdShow = ref(false);
 async function handleSongOn(id) {
-  loadingShow.value = true;
-  loading.value = true;
-  resetPlayer();
   const { data } = await get("https://api.vkeys.cn/v2/music/netease", {
     id: id,
   });
@@ -412,6 +429,19 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="less">
+.frame_container {
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  z-index: 100;
+}
+.iframe {
+  position: absolute;
+  height: 100px;
+  width: 200px;
+  top: 0;
+  left: 0;
+}
 .container_css() {
   position: absolute;
   left: 0;
@@ -510,18 +540,25 @@ onMounted(() => {
 }
 
 .play_area_card {
+  position: absolute;
   display: flex;
-  width: 90%;
+  width: 0;
   height: 60vh;
   background-color: rgba(89, 89, 89, 0.45);
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: rgba(14, 14, 14, 0.19) 0px 6px 15px 0px;
   -webkit-box-shadow: rgba(14, 14, 14, 0.19) 0px 6px 15px 0px;
   border-radius: 7px;
   -webkit-border-radius: 7px;
   color: rgb(128, 128, 128);
+  right: 0;
+  margin-right: 10%;
+  transition: all 0.6s ease;
+}
+.play_area_card_open {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  width: 90%;
 }
 .card_audio_vis {
   position: absolute;
