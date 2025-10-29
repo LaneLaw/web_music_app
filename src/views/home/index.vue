@@ -24,6 +24,7 @@
     ></IInput>
     <Songs ref="songsRef"></Songs>
     <div class="layout">
+      <audio-circle-visual ref="visualCircleRef" class="audio_circle_visual"></audio-circle-visual>
       <api-source-announcement class="announcement"></api-source-announcement>
       <div class="music_effect_area">
         <div class="song_list">
@@ -146,9 +147,11 @@ import Songs from "./songs.vue";
 import IInput from "@/components/form/IInput.vue";
 import IBackGround from "@/components/effects/IBackGround.vue";
 import apiSourceAnnouncement from "./apiSourceAnnouncement.vue";
+import audioCircleVisual from "./audioCircleVisual.vue";
 
 const audio = ref();
 const visualRef = ref();
+const visualCircleRef = ref();
 const audioPlayerRef = ref();
 const cdRef = ref();
 const songsRef = ref();
@@ -277,6 +280,7 @@ function setupAudio() {
     top.style = "height: 50%;";
     playing.value = true;
     visualRef.value.initVisual(audio);
+    visualCircleRef.value.initVisual(audio);
   });
   audio.value.addEventListener("pause", function () {
     playing.value = false;

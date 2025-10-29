@@ -62,6 +62,7 @@ function drawCircularSpectrum(data, width, height, ctx) {
     ctx.stroke(); // 描边
   }
 }
+
 function AnimateVisual() {
   const ctx = visualCanvasRef.value.getContext("2d");
   const width = visualCanvasRef.value.width;
