@@ -27,7 +27,6 @@ function setupAnalysis(analyser) {
 function drawCircularSpectrum(data, width, height, ctx) {
   const centerX = width / 2; // 圆心x坐标
   const centerY = height / 2; // 圆心y坐标
-  console.log(centerX, centerY);
   const radius = Math.min(centerX, centerY) * 0.7; // 基础半径，留出边缘空间
   const bars = data.length; // 条形数量，等于频率数据点数
 
@@ -106,6 +105,7 @@ function initVisual(audioRef) {
   sourceNode.connect(analyser.value);
   analyser.value.connect(audioContext.value.destination);
   setupAnalysis(analyser);
+  return analyser;
 }
 onMounted(() => {});
 defineExpose({

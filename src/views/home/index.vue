@@ -24,7 +24,10 @@
     ></IInput>
     <Songs ref="songsRef"></Songs>
     <div class="layout">
-      <audio-circle-visual ref="visualCircleRef" class="audio_circle_visual"></audio-circle-visual>
+      <audio-circle-visual
+        ref="visualCircleRef"
+        class="audio_circle_visual"
+      ></audio-circle-visual>
       <api-source-announcement class="announcement"></api-source-announcement>
       <div class="music_effect_area">
         <div class="song_list">
@@ -42,19 +45,75 @@
             v-for="item in songs"
             :class="{
               song_name: true,
-              song_active: !item.isCurrent,
+              song_active: item.isCurrent || item.isActive,
               song_show: item.show,
             }"
             @mouseenter="handleMouseEnter(item)"
             @mouseleave="handleMouseLeave(item)"
             @click="handleClick(item)"
           >
-            {{ item.song }}
-            <IBorder
-              v-if="item.isCurrent"
-              :color="['#A07CFE', '#FE8FB5', '#FFBE7B']"
-              :border-radius="10"
-            ></IBorder>
+            <div
+              :class="{
+                song_list_info: true,
+                song_list_cover: true,
+              }"
+            >
+              <img :src="item.cover" />
+            </div>
+            <div
+              :class="{
+                song_list_info: true,
+                song_list_name: true,
+              }"
+            >
+              <div
+                :class="{
+                  song_list_copy: true,
+                  song_list_focus: item.isActive || item.isCurrent,
+                }"
+              >
+                {{ getShortenSong(item.song) }}
+              </div>
+              <div
+                :class="{
+                  song_list_copy: true,
+                  song_list_focus: item.isActive || item.isCurrent,
+                }"
+              >
+                {{ getShortenSong(item.song) }}
+              </div>
+            </div>
+            <div
+              :class="{
+                song_list_info: true,
+                song_list_singer: true,
+              }"
+            >
+              <div
+                :class="{
+                  song_list_copy: true,
+                  song_list_focus: item.isActive || item.isCurrent,
+                }"
+              >
+                {{ getShortenSinger(item.singer) }}
+              </div>
+              <div
+                :class="{
+                  song_list_copy: true,
+                  song_list_focus: item.isActive || item.isCurrent,
+                }"
+              >
+                {{ getShortenSinger(item.singer) }}
+              </div>
+            </div>
+            <div
+              :class="{
+                song_list_info: true,
+                song_list_time: true,
+              }"
+            >
+              {{ item.time }}
+            </div>
           </div>
         </div>
       </div>
@@ -259,6 +318,15 @@ async function handleSongOn(id) {
   setupAudio();
 }
 
+function getShortenSong(str) {
+  if (str.length > 14) return str.slice(0, 14) + "...";
+  return str;
+}
+function getShortenSinger(str) {
+  if (str.length > 5) return str.slice(0, 5) + "...";
+  return str;
+}
+
 function setCover(url) {
   if (cdRef.value) {
     cdRef.value.style.background = `url('${url}')`;
@@ -279,8 +347,8 @@ function setupAudio() {
     const top = document.querySelector(".lyrics_top_placeholder");
     top.style = "height: 50%;";
     playing.value = true;
-    visualRef.value.initVisual(audio);
-    visualCircleRef.value.initVisual(audio);
+    const analyser = visualRef.value.initVisual(audio);
+    visualCircleRef.value.initVisual(analyser);
   });
   audio.value.addEventListener("pause", function () {
     playing.value = false;
@@ -502,8 +570,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  height: 300px;
-  width: 200px;
+  height: 360px;
+  width: 500px;
   overflow-y: overlay;
   overflow-x: hidden;
   scrollbar-gutter: stable;
@@ -520,23 +588,60 @@ onMounted(() => {
   color: #dbd8cf;
   font-style: italic;
   cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-wrap: nowrap;
   opacity: 0;
-  transition: opacity 0.3s, background-size 0.3s;
+  border-radius: 8px;
+  transition: opacity 0.3s, background 0.3s;
 }
+// .song_active {
+//   background: linear-gradient(to right, #ec695c, #61c454) no-repeat right bottom;
+//   background-size: 0 1px;
+// }
+// .song_active:hover {
+//   background-size: 100% 1px;
+//   background-position-x: left;
+// }
 .song_active {
-  background: linear-gradient(to right, #ec695c, #61c454) no-repeat right bottom;
-  background-size: 0 1px;
-}
-.song_active:hover {
-  background-size: 100% 1px;
-  background-position-x: left;
+  background-color: rgba(89, 89, 89, 0.45);
+  backdrop-filter: blur(0px);
 }
 .song_show {
   opacity: 1;
+}
+.song_list_info {
+  display: flex;
+  flex-shrink: 0;
+  margin-right: 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-wrap: nowrap;
+}
+.song_list_copy {
+  flex-shrink: 0;
+  width: 100%;
+}
+.song_list_focus {
+  animation: scrollInf 10s linear infinite;
+}
+@keyframes scrollInf {
+  0% {
+    transform: translateX(0); /* 从容器右侧开始 */
+  }
+  100% {
+    transform: translateX(-100%); /* 向左移动至容器左侧外 */
+  }
+}
+.song_list_cover {
+  height: 20px;
+  width: 20px;
+}
+.song_list_name {
+  width: 200px;
+}
+.song_list_singer {
+  width: 100px;
+}
+.song_list_time {
+  width: 120px;
 }
 .play_area {
   align-items: center;
