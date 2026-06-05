@@ -24,10 +24,10 @@
     ></IInput>
     <Songs ref="songsRef"></Songs>
     <div class="layout">
-      <audio-circle-visual
+      <!-- <audio-circle-visual
         ref="visualCircleRef"
         class="audio_circle_visual"
-      ></audio-circle-visual>
+      ></audio-circle-visual> -->
       <api-source-announcement class="announcement"></api-source-announcement>
       <div class="music_effect_area">
         <div class="song_list">
