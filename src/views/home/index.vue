@@ -314,7 +314,9 @@ async function handleSongOn(id) {
   });
   setCover(data.data.cover);
   await getLyric(id);
-  songUrl.value = data.data.url;
+  songUrl.value =
+    data.data.url ||
+    "http://ws.stream.qqmusic.qq.com/Q000000Ok4Fl4ckn34.flac?guid=api.vkeys.cn&vkey=E1B5C8987D1B9D43F3F427A451ECDC3F57658F3FD0BDCC5B8F768BBC7233BC8E7B3BD514735834F5FEFA4314E1D4021F0985B316C8F04A3A__v2b9ab5af&uin=1152921505349757380&fromtag=0&trace=5d32f24cf2fa5087";
   setupAudio();
 }
 
@@ -441,7 +443,7 @@ function timeToSeconds(timeStr) {
   // 使用正则表达式匹配分钟、秒、小数部分
   const match = timeStr.match(/^(\d{2}):(\d{2})\.(\d{1,3})$/);
   if (!match) {
-    throw new Error('无效的时间格式，请使用 "mm:ss.xxx" 格式。');
+    return 0;
   }
 
   const minutes = parseInt(match[1], 10);
